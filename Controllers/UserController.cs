@@ -8,11 +8,11 @@ using System.Collections.Generic;
 namespace bug_tracker.Controllers
 {
     [ApiController]
-    [Route("api/users")]
+    [Route("api/user")]
     public class UserController : ControllerBase
     {
         private ArrayList Users = new ArrayList() {
-            new User {Username = "plane", Nickname = "pale"}
+            new User {Username = "plane", Nickname = "pale", Projects = new List<int>(){23, 56}}
         };
 
         private readonly ILogger<UserController> _logger;
@@ -24,22 +24,23 @@ namespace bug_tracker.Controllers
 
         [HttpPost]
         public IActionResult Post(User user) {
-            Console.Write("post");
+            Console.WriteLine("post");
+            user.Projects = new List<int>();
             Users.Add(user);
             return Ok(user);
         }
         
 
-        [HttpPut("{username}")]
-        public IActionResult Update(string username, User newUser) {
+        [HttpPut]
+        public IActionResult Update(User newUser) {
             Console.Write("put");
 
             for (int i = 0; i < Users.Count; i++) {
                 User user = (User) Users[i];
 
-                if (string.Equals(user.Username, username)) {
+                if (string.Equals(user.Username, newUser.Username)) {
                     // update the resource
-                    Users.Add(newUser);
+                    Users[i] = newUser;
                     return Ok(newUser);
                 }
             }
@@ -48,19 +49,19 @@ namespace bug_tracker.Controllers
             return NoContent();
         }
 
-        [HttpGet("{username}")]
-        public IActionResult Get(string username)
+        [HttpGet]
+        public IActionResult Get(User user)
         {
 
             Console.Write("get");
-            Console.Write(username);
+            Console.Write(user.Username);
             for (int i = 0; i < Users.Count; i++) {
-                User user = (User) Users[i];
+                User oldUser = (User) Users[i];
 
-                Console.Write(user.Username);
+                Console.Write(oldUser.Username);
 
-                if (string.Equals(user.Username, username)) {
-                    return Ok(user);
+                if (string.Equals(oldUser.Username, user.Username)) {
+                    return Ok(oldUser);
                 }
             }
 

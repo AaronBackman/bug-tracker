@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace bug_tracker
 {
@@ -6,5 +7,6 @@ namespace bug_tracker
     {
         public string Username { get; set; }
         public string Nickname { get; set; }
+        public List<int> Projects {get; set;}
     }
 }
