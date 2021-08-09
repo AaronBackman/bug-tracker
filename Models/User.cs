@@ -7,6 +7,7 @@ namespace bug_tracker
     {
         public string Username { get; set; }
         public string Nickname { get; set; }
-        public List<int> Projects {get; set;}
+        // a list of project IDs
+        public List<int?> Projects {get; set;}
     }
 }

@@ -12,21 +12,21 @@ namespace bug_tracker.Controllers
     public class UserController : ControllerBase
     {
         private ArrayList Users = new ArrayList() {
-            new User {Username = "plane", Nickname = "pale", Projects = new List<int>(){23, 56}}
+            new User {Username = "plane", Nickname = "pale", Projects = new List<int?>(){23, 56}}
         };
 
         private readonly ILogger<UserController> _logger;
+        private readonly UserRepository userTestRepository;
 
         public UserController(ILogger<UserController> logger)
         {
             _logger = logger;
+            this.userTestRepository = new UserRepository();
         }
 
         [HttpPost]
-        public IActionResult Post(User user) {
-            Console.WriteLine("post");
-            user.Projects = new List<int>();
-            Users.Add(user);
+        public IActionResult Post(UserTest user) {
+            userTestRepository.Add(user);
             return Ok(user);
         }
         
@@ -54,18 +54,10 @@ namespace bug_tracker.Controllers
         {
 
             Console.Write("get");
-            Console.Write(user.Username);
-            for (int i = 0; i < Users.Count; i++) {
-                User oldUser = (User) Users[i];
+            
+            IEnumerable<UserTest> queryResults = userTestRepository.GetByUsername(user.Username);
 
-                Console.Write(oldUser.Username);
-
-                if (string.Equals(oldUser.Username, user.Username)) {
-                    return Ok(oldUser);
-                }
-            }
-
-            return NoContent();
+            return Ok(queryResults);
         }
     }
 }

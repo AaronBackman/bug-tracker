@@ -12,7 +12,7 @@ namespace bug_tracker.Controllers
     public class TicketController : ControllerBase
     {
         private ArrayList Tickets = new ArrayList() {
-            new Ticket {Creator = "foo", Name = "qwerty", DateCreated = new DateTime(2008), ProjectId = 53, TicketId = 12}
+            new Ticket {Creator = "foo", Name = "qwerty", DateCreated = new DateTime(2008, 5, 23), ProjectId = 53, TicketId = 12, EditHistory = new List<TicketHistory>() {new TicketHistory {Change = "some change", Editor = "Boss", DateEdited = new DateTime(2100, 3, 12)}}}
         };
 
         private readonly ILogger<UserController> _logger;
