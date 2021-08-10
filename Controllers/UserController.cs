@@ -25,27 +25,28 @@ namespace bug_tracker.Controllers
         }
 
         [HttpPost]
-        public IActionResult Post(UserTest user) {
+        public IActionResult Post(User user) {
             userTestRepository.Add(user);
             return Ok(user);
         }
         
 
         [HttpPut]
-        public IActionResult Update(User newUser) {
-            Console.Write("put");
+        public IActionResult Update(User user) {
+            Console.WriteLine("put");
 
-            for (int i = 0; i < Users.Count; i++) {
-                User user = (User) Users[i];
-
-                if (string.Equals(user.Username, newUser.Username)) {
-                    // update the resource
-                    Users[i] = newUser;
-                    return Ok(newUser);
-                }
-            }
+            userTestRepository.Put(user);
+            return NoContent();
 
             // updated resource does not exist
+            // return BadRequest("Updated resource does not exist");
+        }
+
+        [HttpDelete]
+        public IActionResult Delete(User user) {
+            Console.WriteLine("delete");
+
+            userTestRepository.Delete(user);
             return NoContent();
         }
 
@@ -53,11 +54,15 @@ namespace bug_tracker.Controllers
         public IActionResult Get(User user)
         {
 
-            Console.Write("get");
+            Console.WriteLine("get");
             
-            IEnumerable<UserTest> queryResults = userTestRepository.GetByUsername(user.Username);
+            User QueriedUser = userTestRepository.GetByUsername(user.Username);
 
-            return Ok(queryResults);
+            if (QueriedUser == null) {
+                return NotFound();
+            }
+
+            return Ok(QueriedUser);
         }
     }
 }

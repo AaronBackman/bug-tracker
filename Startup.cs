@@ -11,9 +11,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-using System.Data;
-using System.Data.SqlClient;
-
 namespace bug_tracker
 {
     public class Startup

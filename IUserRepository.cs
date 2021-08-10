@@ -1,12 +1,13 @@
-using Dapper;
-using System.Data;
 using System.Collections.Generic;
 
 namespace bug_tracker
 {
     public interface IUserRepository
     {
-        public IEnumerable<UserTest> GetByUsername(string username);
-        public void Add(UserTest userTest);
+        public User GetByUsername(string username);
+        public void Add(User user);
+
+        public void Put(User user);
+        public void Delete(User user);
     }
 }
