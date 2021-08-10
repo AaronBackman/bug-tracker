@@ -6,8 +6,7 @@ namespace bug_tracker
     public class ProjectMember
     {
         public string Username { get; set; }
-        public string NickName {get; set;}
-        public Role Role { get; set; }
+        public Role ProjectRole { get; set; }
         public int ProjectId {get; set;}
     }
 }

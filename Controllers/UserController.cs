@@ -11,10 +11,6 @@ namespace bug_tracker.Controllers
     [Route("api/user")]
     public class UserController : ControllerBase
     {
-        private ArrayList Users = new ArrayList() {
-            new User {Username = "plane", Nickname = "pale", Projects = new List<int?>(){23, 56}}
-        };
-
         private readonly ILogger<UserController> _logger;
         private readonly UserRepository userTestRepository;
 

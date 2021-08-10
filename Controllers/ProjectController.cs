@@ -11,15 +11,13 @@ namespace bug_tracker.Controllers
     [Route("api/projects")]
     public class ProjectController : ControllerBase
     {
-        private ArrayList Projects = new ArrayList() {
-            new Project {ProjectCreator = "foo", ProjectName = "qwerty", ProjectMembers = new List<ProjectMember>() {new ProjectMember {Username = "jellyfish", NickName = "jelly", Role = Role.Developer}}, ProjectId = 53}
-        };
-
+        private readonly ProjectRepository projectRepository;
         private readonly ILogger<UserController> _logger;
 
         public ProjectController(ILogger<UserController> logger)
         {
             _logger = logger;
+            this.projectRepository = new ProjectRepository();
         }
 
         [HttpPost]
@@ -28,7 +26,7 @@ namespace bug_tracker.Controllers
             Console.WriteLine("post");
             // later add checks to prevent duplicate id
             project.ProjectId = rng.Next(1, 1000000);
-            Projects.Add(project);
+            projectRepository.Add(project);
             return Ok(project);
         }
         
@@ -41,17 +39,21 @@ namespace bug_tracker.Controllers
                 return Unauthorized();
             }
 
-            for (int i = 0; i < Projects.Count; i++) {
-                Project project = (Project) Projects[i];
+            projectRepository.Put(updatedProject);
 
-                if (string.Equals(project.ProjectId, id)) {
-                    // update the resource
-                    Projects[i] = updatedProject;
-                    return Ok(updatedProject);
-                }
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public IActionResult Delete(Project deletedProject, int id) {
+            Console.WriteLine("put");
+
+            if (deletedProject.ProjectId != id) {
+                return Unauthorized();
             }
 
-            // updated resource does not exist
+            projectRepository.Delete(deletedProject);
+
             return NoContent();
         }
 
@@ -60,18 +62,14 @@ namespace bug_tracker.Controllers
         {
 
             Console.WriteLine("get");
-            Console.WriteLine(id);
-            for (int i = 0; i < Projects.Count; i++) {
-                Project oldProject = (Project) Projects[i];
+            
+            Project project = projectRepository.GetById(id);
 
-                Console.WriteLine(oldProject.ProjectId);
-
-                if (string.Equals(oldProject.ProjectId, id)) {
-                    return Ok(oldProject);
-                }
+            if (project == null) {
+                return NotFound();
             }
 
-            return NoContent();
+            return Ok(project);
         }
     }
 }
