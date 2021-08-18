@@ -5,14 +5,12 @@ namespace bug_tracker
 {
     public class Ticket
     {
-        public string Name {get; set;}
-        public int TicketId {get; set;}
-        public int ProjectId {get; set;}
-        public string Description {get; set;}
+        public string TicketName {get; set;}
+        public Guid TicketGUID {get; set;}
+        public string TicketDescription {get; set;}
         public DateTime DateCreated {get; set;}
-        public string Creator {get; set;}
-        public int priority {get; set;}
-        public bool IsCompleted {get; set;}
-        public List<TicketHistory> EditHistory {get; set;}
+        public string CreatorNickname {get; set;}
+        public int TicketPriority {get; set;}
+        public bool TicketCompleted {get; set;}
     }
 }

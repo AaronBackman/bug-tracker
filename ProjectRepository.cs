@@ -1,4 +1,5 @@
 using Dapper;
+using System;
 using System.Data;
 using Microsoft.Data.SqlClient;
 using System.Collections.Generic;
@@ -21,38 +22,58 @@ namespace bug_tracker
             connectionString = "data source=carbon;initial catalog=BugTrackerDB;user id=BugTracker;password=Password123";
         }
 
-        public Project GetById(int projectId)
+        public List<Project> GetAll(string email)
         {
 
             using (IDbConnection dbConnection = Connection)
             {
-                string sql = @"SELECT * FROM Projects WHERE ProjectId=@ProjectId";
+                string sql = 
+                    @"SELECT Projects.ProjectName, Projects.ProjectGUID, Users.Email
+                    FROM Projects
+                    INNER JOIN Users ON Users.Id=Projects.OwnerId
+                    WHERE Projects.Id =
+                        (SELECT Projects.Id
+                        FROM Projects
+                        INNER JOIN ProjectMembers
+                        ON Projects.Id= ProjectMembers.ProjectId
+                        INNER JOIN Users
+                        ON ProjectMembers.UserId=Users.Id
+                        WHERE Users.Email=@Email
+                        )";
                 dbConnection.Open();
 
-                Project project = dbConnection.Query<Project>(sql, new {ProjectId = projectId}).FirstOrDefault();
-                if (project != null) {
-                    string projectsSql = @"SELECT * FROM ProjectMembers INNER JOIN Projects ON ProjectMembers.ProjectId = Projects.ProjectId";
-                    project.ProjectMembers = dbConnection.Query<ProjectMember>(projectsSql).ToList();
-                }
+                List<Project> projects = dbConnection.Query<Project>(sql, new {Email = email}).ToList<Project>();
 
-                return project;
+                return projects;
             }
         }
 
-        public void Add(Project project)
+        public void Add(Project project, string email)
         {
             using (IDbConnection dbConnection = Connection) {
-                string sql = @"INSERT INTO Projects (ProjectId, ProjectName) VALUES(@ProjectId,@ProjectName)";
                 dbConnection.Open();
 
-                dbConnection.Execute(sql, project);
+                int ownerId = new UserRepository().GetId(email);
+
+                string sql = @"INSERT INTO Projects (ProjectName) VALUES(@ProjectName, @OwnerId)";
+                dbConnection.Execute(sql, new {ProjectName = project.ProjectName, OwnerId = ownerId});
             }
         }
 
-        public void Put(Project project)
+        public void Put(Project project, string email)
         {
             using (IDbConnection dbConnection = Connection) {
-                string sql = @"UPDATE Projects SET ProjectName=@ProjectName WHERE ProjectId=@ProjectId";
+                string sql =
+                @"UPDATE Projects
+                SET ProjectName=@ProjectName
+                WHERE ProjectGUID=@ProjectGUID
+                AND EXISTS(
+                    SELECT *
+                    FROM Users
+                    INNER JOIN Projects
+                    ON Users.Id=Projects.OwnerId
+                    WHERE Users.Email=@Email
+                )";
                 dbConnection.Open();
 
                 dbConnection.Execute(sql, project);
@@ -62,10 +83,31 @@ namespace bug_tracker
         public void Delete(Project project)
         {
             using (IDbConnection dbConnection = Connection) {
-                string sql = @"DELETE FROM Projects WHERE ProjectId=@ProjectId";
+                string sql =
+                @"DELETE FROM Projects
+                WHERE ProjectGUID=@ProjectGUID
+                AND EXISTS(
+                    SELECT *
+                    FROM Users
+                    INNER JOIN Projects
+                    ON Users.Id=Projects.OwnerId
+                    WHERE Users.Email=@Email
+                )";
                 dbConnection.Open();
 
                 dbConnection.Execute(sql, project);
+            }
+        }
+
+        public int GetId(Guid guid)
+        {
+            using (IDbConnection dbConnection = Connection) {
+                dbConnection.Open();
+
+                string sql = @"SELECT Projects.Id FROM Projects WHERE Projects.ProjectGUID=@Guid";
+                int id = dbConnection.Query<int>(sql, new {Guid = guid}).FirstOrDefault();
+
+                return id;
             }
         }
     }

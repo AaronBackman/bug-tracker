@@ -1,4 +1,5 @@
 using Dapper;
+using System;
 using System.Data;
 using Microsoft.Data.SqlClient;
 using System.Collections.Generic;
@@ -21,28 +22,36 @@ namespace bug_tracker
             connectionString = "data source=carbon;initial catalog=BugTrackerDB;user id=BugTracker;password=Password123";
         }
 
-        public User GetByUsername(string username)
+        public User GetByEmail(string email)
         {
 
             using (IDbConnection dbConnection = Connection)
             {
-                string sql = @"SELECT * FROM Users WHERE Username=@Username";
+                string sql = @"SELECT * FROM Users WHERE Email=@Email";
                 dbConnection.Open();
 
-                User user = dbConnection.Query<User>(sql, new {Username = username}).FirstOrDefault();
-                if (user != null) {
-                    string projectsSql = @"SELECT ProjectId FROM ProjectMembers INNER JOIN Users ON ProjectMembers.Username = Users.Username";
-                    user.Projects = dbConnection.Query<int?>(projectsSql).ToList();
-                }
+                User user = dbConnection.Query<User>(sql, new {Email = email}).FirstOrDefault();
 
                 return user;
+            }
+        }
+
+        public int GetId(string email)
+        {
+            using (IDbConnection dbConnection = Connection) {
+                dbConnection.Open();
+
+                string sql = @"SELECT Users.Id FROM Users WHERE Users.Email=@Email";
+                int id = dbConnection.Query<int>(sql, new {Email = email}).FirstOrDefault();
+
+                return id;
             }
         }
 
         public void Add(User user)
         {
             using (IDbConnection dbConnection = Connection) {
-                string sql = @"INSERT INTO Users (Username, Nickname) VALUES(@Username,@Nickname)";
+                string sql = @"INSERT INTO Users (Email, Nickname) VALUES(@Email,@Nickname)";
                 dbConnection.Open();
 
                 dbConnection.Execute(sql, user);
@@ -52,7 +61,7 @@ namespace bug_tracker
         public void Put(User user)
         {
             using (IDbConnection dbConnection = Connection) {
-                string sql = @"UPDATE Users SET Nickname=@Nickname WHERE Username=@Username";
+                string sql = @"UPDATE Users SET Nickname=@Nickname WHERE Email=@Email";
                 dbConnection.Open();
 
                 dbConnection.Execute(sql, user);
@@ -62,7 +71,7 @@ namespace bug_tracker
         public void Delete(User user)
         {
             using (IDbConnection dbConnection = Connection) {
-                string sql = @"DELETE FROM Users WHERE Username=@Username";
+                string sql = @"DELETE FROM Users WHERE Email=@Email";
                 dbConnection.Open();
 
                 dbConnection.Execute(sql, user);

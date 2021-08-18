@@ -6,6 +6,6 @@ namespace bug_tracker
     {
         public string Change {get; set;}
         public DateTime DateEdited {get; set;}
-        public string Editor {get; set;}
+        public string EditorNickname {get; set;}
     }
 }
