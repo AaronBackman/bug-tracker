@@ -27,8 +27,8 @@ namespace bug_tracker.Controllers
         }
         
 
-        [HttpPut]
-        public IActionResult Update(User user) {
+        [HttpPut("{email}")]
+        public IActionResult Update(User user, string email) {
             Console.WriteLine("put");
 
             userTestRepository.Put(user);
@@ -38,21 +38,21 @@ namespace bug_tracker.Controllers
             // return BadRequest("Updated resource does not exist");
         }
 
-        [HttpDelete]
-        public IActionResult Delete(User user) {
+        [HttpDelete("{email}")]
+        public IActionResult Delete(User user, string email) {
             Console.WriteLine("delete");
 
             userTestRepository.Delete(user);
             return NoContent();
         }
 
-        [HttpGet]
-        public IActionResult Get(User user)
+        [HttpGet("{email}")]
+        public IActionResult Get(User user, string email)
         {
 
             Console.WriteLine("get");
             
-            User QueriedUser = userTestRepository.GetByUsername(user.Username);
+            User QueriedUser = userTestRepository.GetByEmail(user.Email);
 
             if (QueriedUser == null) {
                 return NotFound();

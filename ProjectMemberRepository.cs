@@ -67,7 +67,7 @@ namespace bug_tracker
                     WHERE Users.Email=@Email AND ProjectMembers.ProjectRole < @ProjectRole
                 )";
 
-                dbConnection.Execute(sql, new {ProjectRole = projectMember.ProjectRole, ProjectId = projectId, UserId = userId});
+                dbConnection.Execute(sql, new {ProjectRole = projectMember.ProjectRole, ProjectId = projectId, UserId = userId, Email = email});
             }
         }
 
@@ -87,11 +87,11 @@ namespace bug_tracker
                 )";
                 dbConnection.Open();
 
-                dbConnection.Execute(sql, new {ProjectMemberGUID = projectMember.ProjectMemberGUID});
+                dbConnection.Execute(sql, new {ProjectMemberGUID = projectMember.ProjectMemberGUID, Email = email});
             }
         }
 
-        public void Delete(ProjectMember projectMember, string email)
+        public void Delete(Guid projectMemberGuid, string email)
         {
             using (IDbConnection dbConnection = Connection) {
                 string sql =
@@ -106,7 +106,7 @@ namespace bug_tracker
                 )";
                 dbConnection.Open();
 
-                dbConnection.Execute(sql, new {ProjectMemberGUID = projectMember.ProjectMemberGUID});
+                dbConnection.Execute(sql, new {ProjectMemberGUID = projectMemberGuid, Email = email});
             }
         }
     }

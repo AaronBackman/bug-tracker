@@ -76,11 +76,11 @@ namespace bug_tracker
                 )";
                 dbConnection.Open();
 
-                dbConnection.Execute(sql, project);
+                dbConnection.Execute(sql, new {ProjectName = project.ProjectName, ProjectGUID = project.ProjectGUID, Email = email});
             }
         }
 
-        public void Delete(Project project)
+        public void Delete(Guid projectGuid, string email)
         {
             using (IDbConnection dbConnection = Connection) {
                 string sql =
@@ -95,7 +95,7 @@ namespace bug_tracker
                 )";
                 dbConnection.Open();
 
-                dbConnection.Execute(sql, project);
+                dbConnection.Execute(sql, new {ProjectGUID = projectGuid, Email = email});
             }
         }
 

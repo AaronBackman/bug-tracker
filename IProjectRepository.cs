@@ -8,8 +8,8 @@ namespace bug_tracker
         public List<Project> GetAll(string email);
         public void Add(Project project, string email);
 
-        public void Put(Project project);
-        public void Delete(Project project);
+        public void Put(Project project, string email);
+        public void Delete(Guid projectGuid, string email);
 
         public int GetId(Guid guid);
     }

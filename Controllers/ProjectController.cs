@@ -22,54 +22,44 @@ namespace bug_tracker.Controllers
 
         [HttpPost]
         public IActionResult Post(Project project) {
-            Random rng = new Random();
             Console.WriteLine("post");
             // later add checks to prevent duplicate id
-            project.ProjectId = rng.Next(1, 1000000);
-            projectRepository.Add(project);
+            projectRepository.Add(project, HttpContext.Request.Query["email"].ToString());
             return Ok(project);
         }
         
 
-        [HttpPut("{id}")]
-        public IActionResult Update(Project updatedProject, int id) {
+        [HttpPut("{guid}")]
+        public IActionResult Update(Project updatedProject, Guid guid) {
             Console.WriteLine("put");
 
-            if (updatedProject.ProjectId != id) {
+            if (updatedProject.ProjectGUID != guid) {
                 return Unauthorized();
             }
 
-            projectRepository.Put(updatedProject);
+            projectRepository.Put(updatedProject, HttpContext.Request.Query["email"].ToString());
 
             return NoContent();
         }
 
-        [HttpDelete("{id}")]
-        public IActionResult Delete(Project deletedProject, int id) {
-            Console.WriteLine("put");
+        [HttpDelete("{guid}")]
+        public IActionResult Delete(Guid guid) {
+            Console.WriteLine("delete");
 
-            if (deletedProject.ProjectId != id) {
-                return Unauthorized();
-            }
-
-            projectRepository.Delete(deletedProject);
+            projectRepository.Delete(guid, HttpContext.Request.Query["email"].ToString());
 
             return NoContent();
         }
 
-        [HttpGet("{id}")]
-        public IActionResult Get(int id)
+        [HttpGet]
+        public IActionResult Get()
         {
 
             Console.WriteLine("get");
             
-            Project project = projectRepository.GetById(id);
+            List<Project> projects = projectRepository.GetAll(HttpContext.Request.Query["email"].ToString());
 
-            if (project == null) {
-                return NotFound();
-            }
-
-            return Ok(project);
+            return Ok(projects);
         }
     }
 }
