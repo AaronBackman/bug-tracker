@@ -17,6 +17,8 @@ CREATE TABLE ProjectMembers (
     ProjectRole int NOT NULL,
     Id int IDENTITY(1,1) PRIMARY KEY,
     ProjectMemberGUID UNIQUEIDENTIFIER NOT NULL UNIQUE DEFAULT NEWID(),
+
+    // TODO Unique(ProjectId, UserId) //
 );
 
 CREATE TABLE Tickets (

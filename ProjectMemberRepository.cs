@@ -22,92 +22,115 @@ namespace bug_tracker
             connectionString = "data source=carbon;initial catalog=BugTrackerDB;user id=BugTracker;password=Password123";
         }
 
-        public List<ProjectMember> GetAll(Guid ProjectGuid, string email)
+        public List<ProjectMember> GetAll(Guid projectGuid, string email)
         {
 
             using (IDbConnection dbConnection = Connection)
             {
                 dbConnection.Open();
 
+                int userId = new UserRepository().GetId(email);
+                int projectId = new ProjectRepository().GetId(projectGuid);
+
                 string sql = 
                     @"SELECT ProjectMembers.ProjectRole, ProjectMembers.ProjectMemberGUID, Users.Nickname, Users.Email
                     FROM ProjectMembers
                     INNER JOIN Users ON Users.Id=ProjectMembers.UserId
-                    WHERE ProjectMembers.ProjectGUID=@ProjectGUID
+                    WHERE ProjectMembers.ProjectId=@ProjectId
                     AND EXISTS
                         (SELECT *
                         FROM Users
                         INNER JOIN ProjectMembers
-                        ON Users.Id=ProjectMembers.Id
-                        WHERE ProjectMembers.ProjectGUID=@ProjectGUID AND Users.Email=@Email
+                        ON Users.Id=ProjectMembers.UserId
+                        WHERE ProjectMembers.ProjectId=@ProjectId AND Users.Id=@Id
                         )";
 
-                List<ProjectMember> projects = dbConnection.Query<ProjectMember>(sql, new {ProjectGUID = ProjectGuid, Email = email}).ToList<ProjectMember>();
+                List<ProjectMember> projects = dbConnection.Query<ProjectMember>(sql, new {ProjectId = projectId, Id = userId}).ToList<ProjectMember>();
 
                 return projects;
             }
         }
 
-        public void Add(ProjectMember projectMember, Guid projectGuid, string email)
+        public ProjectMember Add(ProjectMember projectMember, Guid projectGuid, string email, bool isOwner)
         {
             using (IDbConnection dbConnection = Connection) {
                 dbConnection.Open();
 
-                int userId = new UserRepository().GetId(projectMember.Email);
+                int newUserId = new UserRepository().GetId(projectMember.Email);
+                int userId = new UserRepository().GetId(email);
+                int projectId = new ProjectRepository().GetId(projectGuid);
+                string sql;
+
+                if (!isOwner) {
+                    sql =
+                    @"INSERT INTO ProjectMembers (ProjectRole, ProjectId, UserId)
+                    OUTPUT INSERTED.ProjectMemberGUID
+                    VALUES(@ProjectRole, @ProjectId, @NewUserId)
+                    SELECT *
+                    FROM ProjectMembers
+                    WHERE ProjectMembers.ProjectId=@ProjectId AND ProjectMembers.UserId=@UserId AND ProjectMembers.ProjectRole < @ProjectRole";
+                }
+                else {
+                    sql =
+                    @"INSERT INTO ProjectMembers (ProjectRole, ProjectId, UserId)
+                    OUTPUT INSERTED.ProjectMemberGUID
+                    VALUES(@ProjectRole, @ProjectId, @NewUserId)
+                    ";
+                }
+
+                projectMember.ProjectMemberGUID = dbConnection.ExecuteScalar<Guid>(sql, new {ProjectRole = projectMember.ProjectRole, ProjectId = projectId, NewUserId = newUserId, UserId = userId});
+
+                return projectMember;
+            }
+        }
+
+        public void Put(ProjectMember projectMember, Guid projectGuid, string email)
+        {
+            using (IDbConnection dbConnection = Connection) {
+                
+                int updatedUserId = new UserRepository().GetId(projectMember.Email);
+                int userId = new UserRepository().GetId(email);
+                int projectId = new ProjectRepository().GetId(projectGuid);
+
+                // cant change your own role
+                if (updatedUserId == userId) {
+                    return;
+                }
+
+                string sql =
+                @"UPDATE ProjectMembers
+                SET ProjectRole=@ProjectRole
+                WHERE ProjectMembers.ProjectId=@ProjectId AND ProjectMembers.UserId=@UpdatedUserId AND EXISTS (
+                    SELECT *
+                    FROM ProjectMembers
+                    WHERE ProjectMembers.UserId=@UserId AND ProjectMembers.ProjectId=@ProjectId AND ProjectMembers.ProjectRole < @ProjectRole
+                )";
+                dbConnection.Open();
+
+                dbConnection.Execute(sql, new {UserId = userId, UpdatedUserId = updatedUserId, ProjectId = projectId, ProjectRole = projectMember.ProjectRole});
+            }
+        }
+
+        public void Delete(Guid projectMemberGuid, Guid projectGuid, string email)
+        {
+            using (IDbConnection dbConnection = Connection) {
+                int userId = new UserRepository().GetId(email);
                 int projectId = new ProjectRepository().GetId(projectGuid);
 
                 string sql =
-                @"INSERT INTO ProjectMembers (ProjectRole, ProjectId, UserId)
-                VALUES(@ProjectRole, @ProjectId, @UserId)
-                WHERE EXISTS(
+                @"DELETE FROM ProjectMembers
+                WHERE ProjectMembers.ProjectMemberGUID=@ProjectMemberGUID AND EXISTS (
                     SELECT *
-                    FROM Users
-                    INNER JOIN ProjectMembers
-                    ON Users.Id=ProjectMembers.UserId
-                    WHERE Users.Email=@Email AND ProjectMembers.ProjectRole < @ProjectRole
-                )";
-
-                dbConnection.Execute(sql, new {ProjectRole = projectMember.ProjectRole, ProjectId = projectId, UserId = userId, Email = email});
-            }
-        }
-
-        public void Put(ProjectMember projectMember, Guid ProjectGuid, string email)
-        {
-            using (IDbConnection dbConnection = Connection) {
-                string sql =
-                @"UPDATE ProjectMembers AS P1
-                SET P1.ProjectRole=@ProjectRole
-                WHERE P1.ProjectMemberGUID=@ProjectMemberGUID
-                AND EXISTS(
-                    SELECT *
-                    FROM Users
-                    INNER JOIN ProjectMembers as P2
-                    ON Users.Id=P2.UserId
-                    WHERE Users.Email=@Email AND P2.ProjectRole < @ProjectRole AND P2.ProjectRole < P1.ProjectRole
+                    FROM ProjectMembers
+                    WHERE ProjectMembers.UserId=@UserId AND ProjectMembers.ProjectId=@ProjectId AND ProjectMembers.ProjectRole < @ProjectRole
                 )";
                 dbConnection.Open();
 
-                dbConnection.Execute(sql, new {ProjectMemberGUID = projectMember.ProjectMemberGUID, Email = email});
-            }
-        }
-
-        public void Delete(Guid projectMemberGuid, string email)
-        {
-            using (IDbConnection dbConnection = Connection) {
-                string sql =
-                @"DELETE FROM ProjectMembers AS P1
-                WHERE P1.ProjectMemberGUID=@ProjectMemberGUID
-                AND EXISTS(
-                    SELECT *
-                    FROM Users
-                    INNER JOIN ProjectMembers as P2
-                    ON Users.Id=P2.UserId
-                    WHERE Users.Email=@Email AND P2.ProjectRole < P1.ProjectRole
-                )";
-                dbConnection.Open();
-
-                dbConnection.Execute(sql, new {ProjectMemberGUID = projectMemberGuid, Email = email});
+                dbConnection.Execute(sql, new {ProjectMemberGUID = projectMemberGuid, ProjectId = projectId, UserId = userId});
             }
         }
     }
 }
+
+/TODO/
+projectmember role got from the api user cant be trusted (can modify others even if they have a higher role), instead get the role through queries

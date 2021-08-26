@@ -48,15 +48,17 @@ namespace bug_tracker
             }
         }
 
-        public void Add(Project project, string email)
+        public Project Add(Project project, string email)
         {
             using (IDbConnection dbConnection = Connection) {
                 dbConnection.Open();
 
                 int ownerId = new UserRepository().GetId(email);
 
-                string sql = @"INSERT INTO Projects (ProjectName) VALUES(@ProjectName, @OwnerId)";
-                dbConnection.Execute(sql, new {ProjectName = project.ProjectName, OwnerId = ownerId});
+                string sql = @"INSERT INTO Projects (ProjectName, OwnerId) OUTPUT INSERTED.ProjectGUID VALUES(@ProjectName, @OwnerId)";
+                project.ProjectGUID = dbConnection.ExecuteScalar<Guid>(sql, new {ProjectName = project.ProjectName, OwnerId = ownerId});
+
+                return project;
             }
         }
 

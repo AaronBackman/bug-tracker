@@ -12,20 +12,28 @@ namespace bug_tracker.Controllers
     public class ProjectController : ControllerBase
     {
         private readonly ProjectRepository projectRepository;
+        private readonly ProjectMemberRepository projectMemberRepository;
         private readonly ILogger<UserController> _logger;
 
         public ProjectController(ILogger<UserController> logger)
         {
             _logger = logger;
             this.projectRepository = new ProjectRepository();
+            this.projectMemberRepository = new ProjectMemberRepository();
         }
 
         [HttpPost]
         public IActionResult Post(Project project) {
             Console.WriteLine("post");
-            // later add checks to prevent duplicate id
-            projectRepository.Add(project, HttpContext.Request.Query["email"].ToString());
-            return Ok(project);
+            string email = HttpContext.Request.Query["email"].ToString();
+
+            Project newProject = projectRepository.Add(project, email);
+
+            ProjectMember projectMember = new ProjectMember();
+            projectMember.Email = email;
+            projectMember.ProjectRole = Role.Owner;
+            projectMemberRepository.Add(projectMember, newProject.ProjectGUID, email, true);
+            return Ok(newProject);
         }
         
 

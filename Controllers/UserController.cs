@@ -39,20 +39,20 @@ namespace bug_tracker.Controllers
         }
 
         [HttpDelete("{email}")]
-        public IActionResult Delete(User user, string email) {
+        public IActionResult Delete(string email) {
             Console.WriteLine("delete");
 
-            userTestRepository.Delete(user);
+            userTestRepository.Delete(email);
             return NoContent();
         }
 
         [HttpGet("{email}")]
-        public IActionResult Get(User user, string email)
+        public IActionResult Get(string email)
         {
 
             Console.WriteLine("get");
             
-            User QueriedUser = userTestRepository.GetByEmail(user.Email);
+            User QueriedUser = userTestRepository.GetByEmail(email);
 
             if (QueriedUser == null) {
                 return NotFound();

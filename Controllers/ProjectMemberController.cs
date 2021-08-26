@@ -23,9 +23,10 @@ namespace bug_tracker.Controllers
         [HttpPost]
         public IActionResult Post(ProjectMember projectMember, Guid project_guid) {
             Console.WriteLine("post");
+            Console.WriteLine(projectMember.ProjectRole);
             // later add checks to prevent duplicate id
-            projectMemberRepository.Add(projectMember, project_guid, HttpContext.Request.Query["email"].ToString());
-            return Ok(projectMember);
+            ProjectMember newProjectMember = projectMemberRepository.Add(projectMember, project_guid, HttpContext.Request.Query["email"].ToString(), false);
+            return Ok(newProjectMember);
         }
         
 
@@ -43,10 +44,10 @@ namespace bug_tracker.Controllers
         }
 
         [HttpDelete("{guid}")]
-        public IActionResult Delete(Guid guid) {
+        public IActionResult Delete(Guid guid, Guid project_guid) {
             Console.WriteLine("delete");
 
-            projectMemberRepository.Delete(guid, HttpContext.Request.Query["email"].ToString());
+            projectMemberRepository.Delete(guid, project_guid, HttpContext.Request.Query["email"].ToString());
 
             return NoContent();
         }

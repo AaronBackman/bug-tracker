@@ -68,13 +68,13 @@ namespace bug_tracker
             }
         }
 
-        public void Delete(User user)
+        public void Delete(string email)
         {
             using (IDbConnection dbConnection = Connection) {
                 string sql = @"DELETE FROM Users WHERE Email=@Email";
                 dbConnection.Open();
 
-                dbConnection.Execute(sql, user);
+                dbConnection.Execute(sql, new {Email = email});
             }
         }
     }

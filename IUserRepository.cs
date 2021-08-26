@@ -7,7 +7,7 @@ namespace bug_tracker
         public void Add(User user);
 
         public void Put(User user);
-        public void Delete(User user);
+        public void Delete(string email);
 
         public int GetId(string email);
     }
