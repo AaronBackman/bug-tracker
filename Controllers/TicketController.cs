@@ -39,7 +39,13 @@ namespace bug_tracker.Controllers
                 return Unauthorized();
             }
 
-            ticketRepository.Put(updatedTicket, ticketGuid, project_guid, HttpContext.Request.Query["email"].ToString());
+            string email = HttpContext.Request.Query["email"].ToString();
+
+            ticketRepository.Put(updatedTicket, ticketGuid, project_guid, email);
+            TicketHistory ticketHistory = new TicketHistory();
+            ticketHistory.DateEdited = DateTime.Now;
+            // add ticketHistory.Change = ??? (TODO)
+            ticketHistoryRepository.Add(ticketHistory, project_guid, ticketGuid, email);
 
             return NoContent();
         }
