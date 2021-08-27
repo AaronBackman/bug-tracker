@@ -119,5 +119,17 @@ namespace bug_tracker
                     });
             }
         }
+
+        public int GetId(Guid guid)
+        {
+            using (IDbConnection dbConnection = Connection) {
+                dbConnection.Open();
+
+                string sql = @"SELECT Tickets.Id FROM Tickets WHERE Tickets.TicketGUID=@Guid";
+                int id = dbConnection.Query<int>(sql, new {Guid = guid}).FirstOrDefault();
+
+                return id;
+            }
+        }
     }
 }

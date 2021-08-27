@@ -10,5 +10,6 @@ namespace bug_tracker
 
         public void Put(Ticket ticket, Guid ticketGuid, Guid projectGuid, string email);
         public void Delete(Guid ticketGuid, Guid projectGuid, string email);
+        public int GetId(Guid guid);
     }
 }
