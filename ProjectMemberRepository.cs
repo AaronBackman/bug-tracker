@@ -91,6 +91,8 @@ namespace bug_tracker
                 int updatedUserId = new UserRepository().GetId(projectMember.Email);
                 int userId = new UserRepository().GetId(email);
                 int projectId = new ProjectRepository().GetId(projectGuid);
+                Role oldProjectRole = getMemberRoleByGUID(projectMember.ProjectMemberGUID);
+                Role newProjectRole = projectMember.ProjectRole;
 
                 // cant change your own role
                 if (updatedUserId == userId) {
@@ -103,11 +105,11 @@ namespace bug_tracker
                 WHERE ProjectMembers.ProjectId=@ProjectId AND ProjectMembers.UserId=@UpdatedUserId AND EXISTS (
                     SELECT *
                     FROM ProjectMembers
-                    WHERE ProjectMembers.UserId=@UserId AND ProjectMembers.ProjectId=@ProjectId AND ProjectMembers.ProjectRole < @ProjectRole
+                    WHERE ProjectMembers.UserId=@UserId AND ProjectMembers.ProjectId=@ProjectId AND ProjectMembers.ProjectRole < @OldProjectRole AND ProjectMembers.ProjectRole < @NewProjectRole
                 )";
                 dbConnection.Open();
 
-                dbConnection.Execute(sql, new {UserId = userId, UpdatedUserId = updatedUserId, ProjectId = projectId, ProjectRole = projectMember.ProjectRole});
+                dbConnection.Execute(sql, new {UserId = userId, UpdatedUserId = updatedUserId, ProjectId = projectId, OldProjectRole = oldProjectRole, NewProjectRole = newProjectRole});
             }
         }
 
@@ -116,6 +118,7 @@ namespace bug_tracker
             using (IDbConnection dbConnection = Connection) {
                 int userId = new UserRepository().GetId(email);
                 int projectId = new ProjectRepository().GetId(projectGuid);
+                Role projectRole = getMemberRoleByGUID(projectMemberGuid);
 
                 string sql =
                 @"DELETE FROM ProjectMembers
@@ -126,11 +129,19 @@ namespace bug_tracker
                 )";
                 dbConnection.Open();
 
-                dbConnection.Execute(sql, new {ProjectMemberGUID = projectMemberGuid, ProjectId = projectId, UserId = userId});
+                dbConnection.Execute(sql, new {ProjectMemberGUID = projectMemberGuid, ProjectId = projectId, UserId = userId, ProjectRole = projectRole});
+            }
+        }
+
+        private Role getMemberRoleByGUID(Guid projectMemberGuid) {
+            using (IDbConnection dbConnection = Connection) {
+
+                string sql =
+                @"SELECT ProjectRole FROM ProjectMembers WHERE ProjectMembers.ProjectMemberGUID=@GUID";
+                dbConnection.Open();
+
+                return dbConnection.Query<Role>(sql, new {GUID = projectMemberGuid}).FirstOrDefault();
             }
         }
     }
 }
-
-/TODO/
-projectmember role got from the api user cant be trusted (can modify others even if they have a higher role), instead get the role through queries
