@@ -28,7 +28,7 @@ namespace bug_tracker
             using (IDbConnection dbConnection = Connection)
             {
                 string sql = 
-                    @"SELECT Projects.ProjectName, Projects.ProjectGUID, Users.Email
+                    @"SELECT Projects.ProjectName, Projects.ProjectGUID, Users.Nickname AS OwnerNickname
                     FROM Projects
                     INNER JOIN Users ON Users.Id=Projects.OwnerId
                     WHERE Projects.Id =
@@ -54,6 +54,10 @@ namespace bug_tracker
                 dbConnection.Open();
 
                 int ownerId = new UserRepository().GetId(email);
+
+                if (ownerId == -1) {
+                    return null;
+                }
 
                 string sql = @"INSERT INTO Projects (ProjectName, OwnerId) OUTPUT INSERTED.ProjectGUID VALUES(@ProjectName, @OwnerId)";
                 project.ProjectGUID = dbConnection.ExecuteScalar<Guid>(sql, new {ProjectName = project.ProjectName, OwnerId = ownerId});
@@ -107,9 +111,12 @@ namespace bug_tracker
                 dbConnection.Open();
 
                 string sql = @"SELECT Projects.Id FROM Projects WHERE Projects.ProjectGUID=@Guid";
-                int id = dbConnection.Query<int>(sql, new {Guid = guid}).FirstOrDefault();
+                IEnumerable<int> result = dbConnection.Query<int>(sql, new {Guid = guid});
+                if (result.Count() == 0) {
+                    return -1;
+                }
 
-                return id;
+                return result.First();;
             }
         }
     }

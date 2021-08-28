@@ -30,9 +30,13 @@ namespace bug_tracker
                 string sql = @"SELECT * FROM Users WHERE Email=@Email";
                 dbConnection.Open();
 
-                User user = dbConnection.Query<User>(sql, new {Email = email}).FirstOrDefault();
+                var result = dbConnection.Query<User>(sql, new {Email = email});
 
-                return user;
+                if (result.Count() == 0) {
+                    return null;
+                }
+
+                return result.First();;
             }
         }
 
@@ -42,9 +46,13 @@ namespace bug_tracker
                 dbConnection.Open();
 
                 string sql = @"SELECT Users.Id FROM Users WHERE Users.Email=@Email";
-                int id = dbConnection.Query<int>(sql, new {Email = email}).FirstOrDefault();
+                var result = dbConnection.Query<int>(sql, new {Email = email});
 
-                return id;
+                if (result.Count() == 0) {
+                    return -1;
+                }
+
+                return result.First();;
             }
         }
 
@@ -54,7 +62,13 @@ namespace bug_tracker
                 string sql = @"INSERT INTO Users (Email, Nickname) VALUES(@Email,@Nickname)";
                 dbConnection.Open();
 
-                dbConnection.Execute(sql, user);
+                try {
+                    dbConnection.Execute(sql, user);
+                }
+                // happens for example if duplicate emails are inserted
+                catch (SqlException) {
+                    // todo return a boolean value to show the operation failed
+                }
             }
         }
 

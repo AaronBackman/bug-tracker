@@ -26,12 +26,13 @@ namespace bug_tracker.Controllers
         public IActionResult Post(Ticket ticket, Guid project_guid) {
             Console.WriteLine("post");
             // later add checks to prevent duplicate id
+            ticket.DateCreated = DateTime.Now;
             Ticket newTicket = ticketRepository.Add(ticket, project_guid, HttpContext.Request.Query["email"].ToString());
             return Ok(newTicket);
         }
         
 
-        [HttpPut("{guid}")]
+        [HttpPut("{ticketGuid}")]
         public IActionResult Update(Ticket updatedTicket, Guid project_guid, Guid ticketGuid) {
             Console.WriteLine("put");
 
@@ -44,17 +45,20 @@ namespace bug_tracker.Controllers
             ticketRepository.Put(updatedTicket, ticketGuid, project_guid, email);
             TicketHistory ticketHistory = new TicketHistory();
             ticketHistory.DateEdited = DateTime.Now;
+            ticketHistory.Change = "TODO";
             // add ticketHistory.Change = ??? (TODO)
             ticketHistoryRepository.Add(ticketHistory, project_guid, ticketGuid, email);
 
             return NoContent();
         }
 
-        [HttpDelete("{guid}")]
+        [HttpDelete("{ticketGuid}")]
         public IActionResult Delete(Guid ticketGuid, Guid project_guid) {
             Console.WriteLine("delete");
+            string email = HttpContext.Request.Query["email"].ToString();
 
-            ticketRepository.Delete(ticketGuid, project_guid, HttpContext.Request.Query["email"].ToString());
+            ticketRepository.Delete(ticketGuid, project_guid, email);
+            ticketHistoryRepository.DeleteAll(ticketGuid, project_guid, email);
 
             return NoContent();
         }

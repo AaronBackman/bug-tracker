@@ -33,10 +33,14 @@ namespace bug_tracker
                 int projectId = new ProjectRepository().GetId(projectGuid);
                 int ticketId = new TicketRepository().GetId(ticketGuid);
 
+                if (ticketId == -1 || userId == -1 || projectId == -1) {
+                    return null;
+                }
+
                 string sql = 
                     @"SELECT TH.Change, TH.DateEdited, U.Nickname AS EditorNickname
                     FROM TicketHistories TH
-                    INNER JOIN Users U ON Users.Id=TH.EditorId
+                    INNER JOIN Users U ON U.Id=TH.EditorId
                     WHERE TH.TicketId=@TicketId
                     AND EXISTS
                         (SELECT *
@@ -62,13 +66,23 @@ namespace bug_tracker
                 int userId = new UserRepository().GetId(email);
                 int projectId = new ProjectRepository().GetId(projectGuid);
                 int ticketId = new TicketRepository().GetId(ticketGuid);
+
+                if (ticketId == -1 || userId == -1 || projectId == -1) {
+                    return;
+                }
+
                 string sql =
-                    @"INSERT INTO TicketHistories (TicketId, DateEdited, EditorId, Change)
-                    VALUES(@TicketId, @DateEdited, @EditorId, @Change)
-                    SELECT *
-                    FROM ProjectMembers
-                    WHERE ProjectMembers.ProjectId=@ProjectId AND
-                    ProjectMembers.UserId=@EditorId AND ProjectMembers.ProjectRole <= @RequiredRole";
+                    @"
+                    IF EXISTS (
+                        SELECT *
+                        FROM ProjectMembers
+                        WHERE ProjectMembers.ProjectId=@ProjectId AND
+                        ProjectMembers.UserId=@EditorId AND ProjectMembers.ProjectRole <= @RequiredRole
+                    )
+                    BEGIN
+                        INSERT INTO TicketHistories (TicketId, DateEdited, EditorId, Change)
+                        VALUES(@TicketId, @DateEdited, @EditorId, @Change)
+                    END";
 
                 dbConnection.Execute(sql, new {
                         TicketId = ticketId, DateEdited = ticketHistory.DateEdited, EditorId = userId,
@@ -83,6 +97,10 @@ namespace bug_tracker
                 int userId = new UserRepository().GetId(email);
                 int projectId = new ProjectRepository().GetId(projectGuid);
                 int ticketId = new TicketRepository().GetId(ticketGuid);
+
+                if (ticketId == -1 || userId == -1 || projectId == -1) {
+                    return;
+                }
 
                 string sql =
                 @"DELETE FROM TicketHistories

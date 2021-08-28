@@ -32,6 +32,10 @@ namespace bug_tracker
                 int userId = new UserRepository().GetId(email);
                 int projectId = new ProjectRepository().GetId(projectGuid);
 
+                if (userId == -1 || projectId == -1) {
+                    return null;
+                }
+
                 string sql = 
                     @"SELECT ProjectMembers.ProjectRole, ProjectMembers.ProjectMemberGUID, Users.Nickname, Users.Email
                     FROM ProjectMembers
@@ -61,14 +65,22 @@ namespace bug_tracker
                 int projectId = new ProjectRepository().GetId(projectGuid);
                 string sql;
 
+                if (newUserId == -1 || userId == -1 || projectId == -1) {
+                    return null;
+                }
+
                 if (!isOwner) {
                     sql =
-                    @"INSERT INTO ProjectMembers (ProjectRole, ProjectId, UserId)
-                    OUTPUT INSERTED.ProjectMemberGUID
-                    VALUES(@ProjectRole, @ProjectId, @NewUserId)
-                    SELECT *
-                    FROM ProjectMembers
-                    WHERE ProjectMembers.ProjectId=@ProjectId AND ProjectMembers.UserId=@UserId AND ProjectMembers.ProjectRole < @ProjectRole";
+                    @"IF (EXISTS (
+                        SELECT *
+                        FROM ProjectMembers
+                        WHERE ProjectMembers.ProjectId=@ProjectId AND ProjectMembers.UserId=@UserId AND ProjectMembers.ProjectRole < @ProjectRole
+                    ))
+                    BEGIN
+                        INSERT INTO ProjectMembers (ProjectRole, ProjectId, UserId)
+                        OUTPUT INSERTED.ProjectMemberGUID
+                        VALUES(@ProjectRole, @ProjectId, @NewUserId)
+                    END";
                 }
                 else {
                     sql =
@@ -78,9 +90,15 @@ namespace bug_tracker
                     ";
                 }
 
-                projectMember.ProjectMemberGUID = dbConnection.ExecuteScalar<Guid>(sql, new {ProjectRole = projectMember.ProjectRole, ProjectId = projectId, NewUserId = newUserId, UserId = userId});
+                try {
+                    projectMember.ProjectMemberGUID = dbConnection.ExecuteScalar<Guid>(sql, new {ProjectRole = projectMember.ProjectRole, ProjectId = projectId, NewUserId = newUserId, UserId = userId});
 
-                return projectMember;
+                    return projectMember;
+                }
+                catch (SqlException) {
+                    // todo return a boolean value to show the operation failed
+                    return null;
+                }
             }
         }
 
@@ -91,8 +109,12 @@ namespace bug_tracker
                 int updatedUserId = new UserRepository().GetId(projectMember.Email);
                 int userId = new UserRepository().GetId(email);
                 int projectId = new ProjectRepository().GetId(projectGuid);
-                Role oldProjectRole = getMemberRoleByGUID(projectMember.ProjectMemberGUID);
+                Role? oldProjectRole = getMemberRoleByGUID(projectMember.ProjectMemberGUID);
                 Role newProjectRole = projectMember.ProjectRole;
+
+                if (updatedUserId == -1 || userId == -1 || projectId == -1 || oldProjectRole == null) {
+                    return;
+                }
 
                 // cant change your own role
                 if (updatedUserId == userId) {
@@ -101,7 +123,7 @@ namespace bug_tracker
 
                 string sql =
                 @"UPDATE ProjectMembers
-                SET ProjectRole=@ProjectRole
+                SET ProjectRole=@NewProjectRole
                 WHERE ProjectMembers.ProjectId=@ProjectId AND ProjectMembers.UserId=@UpdatedUserId AND EXISTS (
                     SELECT *
                     FROM ProjectMembers
@@ -118,7 +140,11 @@ namespace bug_tracker
             using (IDbConnection dbConnection = Connection) {
                 int userId = new UserRepository().GetId(email);
                 int projectId = new ProjectRepository().GetId(projectGuid);
-                Role projectRole = getMemberRoleByGUID(projectMemberGuid);
+                Role? projectRole = getMemberRoleByGUID(projectMemberGuid);
+
+                if (projectRole == null || userId == -1 || projectId == -1) {
+                    return;
+                }
 
                 string sql =
                 @"DELETE FROM ProjectMembers
@@ -133,14 +159,20 @@ namespace bug_tracker
             }
         }
 
-        private Role getMemberRoleByGUID(Guid projectMemberGuid) {
+        private Role? getMemberRoleByGUID(Guid projectMemberGuid) {
             using (IDbConnection dbConnection = Connection) {
 
                 string sql =
                 @"SELECT ProjectRole FROM ProjectMembers WHERE ProjectMembers.ProjectMemberGUID=@GUID";
                 dbConnection.Open();
 
-                return dbConnection.Query<Role>(sql, new {GUID = projectMemberGuid}).FirstOrDefault();
+                var result = dbConnection.Query<Role>(sql, new {GUID = projectMemberGuid});
+
+                if (result.Count() == 0) {
+                    return null;
+                }
+
+                return result.First();;
             }
         }
     }

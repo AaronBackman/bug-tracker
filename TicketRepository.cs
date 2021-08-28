@@ -32,11 +32,15 @@ namespace bug_tracker
                 int userId = new UserRepository().GetId(email);
                 int projectId = new ProjectRepository().GetId(projectGuid);
 
+                if (userId == -1 || projectId == -1) {
+                    return null;
+                }
+
                 string sql = 
                     @"SELECT T.TicketName, T.TicketGUID, T.TicketDescription, T.DateCreated, T.TicketPriority, T.TicketCompleted, U.Nickname AS CreatorNickname
                     FROM Tickets T
-                    INNER JOIN Users U ON Users.Id=Tickets.CreatorId
-                    WHERE Tickets.ProjectId=@ProjectId
+                    INNER JOIN Users U ON U.Id=T.CreatorId
+                    WHERE T.ProjectId=@ProjectId
                     AND EXISTS
                         (SELECT *
                         FROM Users
@@ -58,13 +62,23 @@ namespace bug_tracker
 
                 int userId = new UserRepository().GetId(email);
                 int projectId = new ProjectRepository().GetId(projectGuid);
+
+                if (userId == -1 || projectId == -1) {
+                    return null;
+                }
+
                 string sql =
-                    @"INSERT INTO Tickets (CreatorId, DateCreated, TicketName, TicketDescription, TicketPriority, TicketCompleted, ProjectId)
-                    OUTPUT INSERTED.TicketGUID
-                    VALUES(@UserId, @DateCreated, @TicketName, @TicketDescription, @TicketPriority, @TicketCompleted, @ProjectId)
-                    SELECT *
-                    FROM ProjectMembers
-                    WHERE ProjectMembers.ProjectId=@ProjectId AND ProjectMembers.UserId=@UserId AND ProjectMembers.ProjectRole <= @RequiredRole";
+                    @"
+                    IF EXISTS (
+                        SELECT *
+                        FROM ProjectMembers
+                        WHERE ProjectMembers.ProjectId=@ProjectId AND ProjectMembers.UserId=@UserId AND ProjectMembers.ProjectRole <= @RequiredRole
+                    )
+                    BEGIN
+                        INSERT INTO Tickets (CreatorId, DateCreated, TicketName, TicketDescription, TicketPriority, TicketCompleted, ProjectId)
+                        OUTPUT INSERTED.TicketGUID
+                        VALUES(@UserId, @DateCreated, @TicketName, @TicketDescription, @TicketPriority, @TicketCompleted, @ProjectId)
+                    END";
 
                 ticket.TicketGUID = dbConnection.ExecuteScalar<Guid>(sql, new {
                         UserId = userId, DateCreated = ticket.DateCreated, TicketName = ticket.TicketName, TicketDescription = ticket.TicketDescription,
@@ -81,11 +95,17 @@ namespace bug_tracker
                 
                 int userId = new UserRepository().GetId(email);
                 int projectId = new ProjectRepository().GetId(projectGuid);
+                int ticketId = GetId(ticketGuid);
+
+                if (userId == -1 || projectId == -1 || ticketId == -1) {
+                    Console.WriteLine("Abort");
+                    return;
+                }
 
                 string sql =
                 @"UPDATE Tickets
-                SET TicketName=@Ticketname, TicketDescription=@TicketDescription, TicketPriority=@TicketPriority, TicketCompleted=@TicketCompleted
-                WHERE Tickets.TicketGUID=@TicketGUID AND EXISTS (
+                SET TicketName=@TicketName, TicketDescription=@TicketDescription, TicketPriority=@TicketPriority, TicketCompleted=@TicketCompleted
+                WHERE Tickets.Id=@TicketId AND EXISTS (
                     SELECT *
                     FROM ProjectMembers
                     WHERE ProjectMembers.UserId=@UserId AND ProjectMembers.ProjectId=@ProjectId AND ProjectMembers.ProjectRole <= @RequiredRole
@@ -93,7 +113,7 @@ namespace bug_tracker
                 dbConnection.Open();
 
                 dbConnection.Execute(sql, new {
-                        UserId = userId, TicketName = ticket.TicketName, TicketDescription = ticket.TicketDescription,
+                        UserId = userId, TicketId = ticketId, TicketName = ticket.TicketName, TicketDescription = ticket.TicketDescription,
                         TicketPriority = ticket.TicketPriority, TicketCompleted = ticket.TicketCompleted, ProjectId = projectId, RequiredRole = Role.Developer
                     });
             }
@@ -104,10 +124,15 @@ namespace bug_tracker
             using (IDbConnection dbConnection = Connection) {
                 int userId = new UserRepository().GetId(email);
                 int projectId = new ProjectRepository().GetId(projectGuid);
+                int ticketId = GetId(ticketGuid);
+
+                if (userId == -1 || projectId == -1 || ticketId == -1) {
+                    return;
+                }
 
                 string sql =
                 @"DELETE FROM Tickets
-                WHERE Tickets.TicketGUID=@TicketGUID AND EXISTS (
+                WHERE Tickets.Id=@TicketId AND EXISTS (
                     SELECT *
                     FROM ProjectMembers
                     WHERE ProjectMembers.UserId=@UserId AND ProjectMembers.ProjectId=@ProjectId AND ProjectMembers.ProjectRole <= @RequiredRole
@@ -115,7 +140,7 @@ namespace bug_tracker
                 dbConnection.Open();
 
                 dbConnection.Execute(sql, new {
-                        UserId = userId, ProjectId = projectId, RequiredRole = Role.Developer
+                        UserId = userId, ProjectId = projectId, TicketId = ticketId, RequiredRole = Role.Developer
                     });
             }
         }
@@ -126,9 +151,13 @@ namespace bug_tracker
                 dbConnection.Open();
 
                 string sql = @"SELECT Tickets.Id FROM Tickets WHERE Tickets.TicketGUID=@Guid";
-                int id = dbConnection.Query<int>(sql, new {Guid = guid}).FirstOrDefault();
+                var result = dbConnection.Query<int>(sql, new {Guid = guid});
 
-                return id;
+                if (result.Count() == 0) {
+                    return -1;
+                }
+
+                return result.First();;
             }
         }
     }
