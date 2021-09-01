@@ -1,0 +1,16 @@
+.sidebar-button-container {
+    display: flex;
+    justify-content: center;
+    align-self: center;
+    width: 100%;
+    cursor: pointer;
+}
+
+.sidebar-button-container:hover {
+    background-color: #CCC;
+}
+
+.sidebar-button {
+    color: #333;
+    padding: 10px;
+}

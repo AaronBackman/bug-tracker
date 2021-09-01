@@ -76,3 +76,6 @@
 /home/carbon/portfolio/bug-tracker/bin/Debug/netcoreapp3.1/runtimes/win-x86/native/sni.dll
 /home/carbon/portfolio/bug-tracker/bin/Debug/netcoreapp3.1/runtimes/unix/lib/netcoreapp2.1/System.Data.SqlClient.dll
 /home/carbon/portfolio/bug-tracker/bin/Debug/netcoreapp3.1/runtimes/win/lib/netcoreapp2.1/System.Data.SqlClient.dll
+/home/carbon/portfolio/bug-tracker/bin/Debug/netcoreapp3.1/front-end/package-lock.json
+/home/carbon/portfolio/bug-tracker/bin/Debug/netcoreapp3.1/front-end/package.json
+/home/carbon/portfolio/bug-tracker/bin/Debug/netcoreapp3.1/front-end/public/manifest.json

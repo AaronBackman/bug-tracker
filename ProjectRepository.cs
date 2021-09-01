@@ -31,7 +31,7 @@ namespace bug_tracker
                     @"SELECT Projects.ProjectName, Projects.ProjectGUID, Users.Nickname AS OwnerNickname
                     FROM Projects
                     INNER JOIN Users ON Users.Id=Projects.OwnerId
-                    WHERE Projects.Id =
+                    WHERE Projects.Id IN (
                         (SELECT Projects.Id
                         FROM Projects
                         INNER JOIN ProjectMembers
@@ -39,7 +39,8 @@ namespace bug_tracker
                         INNER JOIN Users
                         ON ProjectMembers.UserId=Users.Id
                         WHERE Users.Email=@Email
-                        )";
+                        )
+                    )";
                 dbConnection.Open();
 
                 List<Project> projects = dbConnection.Query<Project>(sql, new {Email = email}).ToList<Project>();
