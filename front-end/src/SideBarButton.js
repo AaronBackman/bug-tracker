@@ -1,9 +1,11 @@
+import { Link } from "react-router-dom";
+
 import "./SideBarButton.css";
 
 export default function SideBarButton(props) {
     return (
-        <div className="sidebar-button-container">
+        <Link className="sidebar-button-container" to={props.path}>
             <div className="sidebar-button">{props.text}</div>
-        </div>
+        </Link>
     )
 }

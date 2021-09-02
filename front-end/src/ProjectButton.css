@@ -1,0 +1,19 @@
+.project-container {
+    padding: 5px 15px;
+    border: 1px solid red;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+
+    cursor: pointer;
+
+    text-decoration: none;
+    color: inherit;
+}
+
+.project-container:hover {
+    background-color: #ccc;
+    text-decoration: underline;
+}

@@ -4,13 +4,15 @@
     align-self: center;
     width: 100%;
     cursor: pointer;
+    text-decoration: none;
+    color: inherit;
 }
 
 .sidebar-button-container:hover {
     background-color: #CCC;
+    text-decoration: underline;
 }
 
 .sidebar-button {
-    color: #333;
     padding: 10px;
 }

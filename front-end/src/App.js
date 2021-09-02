@@ -9,6 +9,7 @@ import Login from './Login';
 import ProjectList from './ProjectList';
 import SideBar from './SideBar';
 import NavBar from './NavBar';
+import ProjectPage from './ProjectPage';
 
 class App extends React.Component {
   state = {
@@ -60,6 +61,7 @@ class App extends React.Component {
               <Route exact path="/login" render={(props) => <Login setUserNickname={this.setUserNickname} {...props} />} />
               <Route exact path="/home" render={(props) => <Home userNickname={this.state.userNickname} {...props} />} />
               <Route exact path="/projects" render={(props) => <ProjectList userNickname={this.state.userNickname} {...props} />} />
+              <Route exact path="/projects/:guid" render={(props) => <ProjectPage {...props} />} />
             </Switch>
           </div>
         </div>

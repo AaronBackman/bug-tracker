@@ -9,7 +9,7 @@ class SideBar extends React.Component {
   render() {
     return (
         <div className="side-bar">
-            <SideBarButton text="Projects" />
+            <SideBarButton path="/projects" text="Projects" />
         </div>
     );
   }
