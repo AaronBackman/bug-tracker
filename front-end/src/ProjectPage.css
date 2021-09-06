@@ -1,0 +1,15 @@
+.ticket-overview-container {
+    background-color: khaki;
+    padding: 10px 30px;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.ticket-overview-info {
+    display: flex;
+}
+
+.ticket-overview-statistics {
+    display: flex;
+}

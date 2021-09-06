@@ -37,9 +37,10 @@ namespace bug_tracker
                 }
 
                 string sql = 
-                    @"SELECT T.TicketName, T.TicketGUID, T.TicketDescription, T.DateCreated, T.TicketPriority, T.TicketCompleted, U.Nickname AS CreatorNickname
+                    @"SELECT T.TicketName, T.TicketGUID, T.TicketDescription, T.DateCreated, T.TicketPriority, T.TicketCompleted, U.Nickname AS CreatorNickname, A.Email
                     FROM Tickets T
                     INNER JOIN Users U ON U.Id=T.CreatorId
+                    INNER JOIN Users A ON A.Id=T.AssignedToId
                     WHERE T.ProjectId=@ProjectId
                     AND EXISTS
                         (SELECT *
@@ -61,6 +62,7 @@ namespace bug_tracker
                 dbConnection.Open();
 
                 int userId = new UserRepository().GetId(email);
+                int assignedToId = new UserRepository().GetId(ticket.AssignedToEmail);
                 int projectId = new ProjectRepository().GetId(projectGuid);
 
                 if (userId == -1 || projectId == -1) {
@@ -75,14 +77,15 @@ namespace bug_tracker
                         WHERE ProjectMembers.ProjectId=@ProjectId AND ProjectMembers.UserId=@UserId AND ProjectMembers.ProjectRole <= @RequiredRole
                     )
                     BEGIN
-                        INSERT INTO Tickets (CreatorId, DateCreated, TicketName, TicketDescription, TicketPriority, TicketCompleted, ProjectId)
+                        INSERT INTO Tickets (CreatorId, DateCreated, TicketName, TicketDescription, TicketPriority, TicketCompleted, ProjectId, AssignedToId)
                         OUTPUT INSERTED.TicketGUID
-                        VALUES(@UserId, @DateCreated, @TicketName, @TicketDescription, @TicketPriority, @TicketCompleted, @ProjectId)
+                        VALUES(@UserId, @DateCreated, @TicketName, @TicketDescription, @TicketPriority, @TicketCompleted, @ProjectId, @AssignedToId)
                     END";
 
                 ticket.TicketGUID = dbConnection.ExecuteScalar<Guid>(sql, new {
                         UserId = userId, DateCreated = ticket.DateCreated, TicketName = ticket.TicketName, TicketDescription = ticket.TicketDescription,
-                        TicketPriority = ticket.TicketPriority, TicketCompleted = ticket.TicketCompleted, ProjectId = projectId, RequiredRole = Role.Developer
+                        TicketPriority = ticket.TicketPriority, TicketCompleted = ticket.TicketCompleted, ProjectId = projectId, RequiredRole = Role.Developer,
+                        AssignedToId = assignedToId
                     });
 
                 return ticket;
@@ -94,6 +97,7 @@ namespace bug_tracker
             using (IDbConnection dbConnection = Connection) {
                 
                 int userId = new UserRepository().GetId(email);
+                int assignedToId = new UserRepository().GetId(ticket.AssignedToEmail);
                 int projectId = new ProjectRepository().GetId(projectGuid);
                 int ticketId = GetId(ticketGuid);
 
@@ -104,7 +108,7 @@ namespace bug_tracker
 
                 string sql =
                 @"UPDATE Tickets
-                SET TicketName=@TicketName, TicketDescription=@TicketDescription, TicketPriority=@TicketPriority, TicketCompleted=@TicketCompleted
+                SET TicketName=@TicketName, TicketDescription=@TicketDescription, TicketPriority=@TicketPriority, TicketCompleted=@TicketCompleted, AssignedToId=@AssignedToId
                 WHERE Tickets.Id=@TicketId AND EXISTS (
                     SELECT *
                     FROM ProjectMembers
@@ -114,7 +118,8 @@ namespace bug_tracker
 
                 dbConnection.Execute(sql, new {
                         UserId = userId, TicketId = ticketId, TicketName = ticket.TicketName, TicketDescription = ticket.TicketDescription,
-                        TicketPriority = ticket.TicketPriority, TicketCompleted = ticket.TicketCompleted, ProjectId = projectId, RequiredRole = Role.Developer
+                        TicketPriority = ticket.TicketPriority, TicketCompleted = ticket.TicketCompleted, ProjectId = projectId, RequiredRole = Role.Developer,
+                        AssignedToId = assignedToId
                     });
             }
         }

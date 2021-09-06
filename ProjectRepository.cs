@@ -49,6 +49,33 @@ namespace bug_tracker
             }
         }
 
+        public Project Get(Guid guid, string email)
+        {
+
+            using (IDbConnection dbConnection = Connection)
+            {
+                string sql = 
+                    @"SELECT Projects.ProjectName, Projects.ProjectGUID, Users.Nickname AS OwnerNickname
+                    FROM Projects
+                    INNER JOIN Users ON Users.Id=Projects.OwnerId
+                    WHERE Projects.ProjectGuid=@Guid AND Projects.Id IN (
+                        (SELECT Projects.Id
+                        FROM Projects
+                        INNER JOIN ProjectMembers
+                        ON Projects.Id= ProjectMembers.ProjectId
+                        INNER JOIN Users
+                        ON ProjectMembers.UserId=Users.Id
+                        WHERE Users.Email=@Email
+                        )
+                    )";
+                dbConnection.Open();
+
+                var project = dbConnection.Query<Project>(sql, new {Guid = guid, Email = email}).FirstOrDefault();
+
+                return project;
+            }
+        }
+
         public Project Add(Project project, string email)
         {
             using (IDbConnection dbConnection = Connection) {

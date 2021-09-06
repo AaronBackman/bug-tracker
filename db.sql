@@ -30,6 +30,7 @@ CREATE TABLE Tickets (
     TicketPriority int NOT NULL,
     TicketCompleted bit NOT NULL,
     ProjectId int NOT NULL FOREIGN KEY REFERENCES Projects(Id) ON DELETE CASCADE
+    AssignedToId int NOT NULL FOREIGN KEY REFERENCES Users(Id)
 );
 
 CREATE TABLE TicketHistories (

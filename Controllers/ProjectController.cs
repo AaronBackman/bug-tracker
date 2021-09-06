@@ -60,7 +60,7 @@ namespace bug_tracker.Controllers
         }
 
         [HttpGet]
-        public IActionResult Get()
+        public IActionResult GetAll()
         {
 
             Console.WriteLine("get");
@@ -68,6 +68,17 @@ namespace bug_tracker.Controllers
             List<Project> projects = projectRepository.GetAll(HttpContext.Request.Query["email"].ToString());
 
             return Ok(projects);
+        }
+
+        [HttpGet("{guid}")]
+        public IActionResult Get(Guid guid)
+        {
+
+            Console.WriteLine("get");
+            
+            Project project = projectRepository.Get(guid, HttpContext.Request.Query["email"].ToString());
+
+            return Ok(project);
         }
     }
 }

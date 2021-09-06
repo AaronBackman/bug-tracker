@@ -5,6 +5,7 @@ namespace bug_tracker
 {
     public interface IProjectRepository
     {
+        public Project Get(Guid guid, string email);
         public List<Project> GetAll(string email);
         public Project Add(Project project, string email);
 

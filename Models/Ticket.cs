@@ -12,5 +12,6 @@ namespace bug_tracker
         public string CreatorNickname {get; set;}
         public int TicketPriority {get; set;}
         public bool TicketCompleted {get; set;}
+        public string AssignedToEmail {get; set;} // email
     }
 }
