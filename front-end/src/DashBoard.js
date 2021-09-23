@@ -10,38 +10,58 @@ class DashBoard extends React.Component {
         tickets: []
     }
 
+    _isMounted = false;
+
     async componentDidMount() {
+        this._isMounted = true;
         const cookies = new Cookies();
 
         const projectsPromise = await axios.get('https://localhost:5000/api/projects?email=' + cookies.get('email'));
         const projects = await projectsPromise.data;
-        console.log(projects);
         const promises = [];
 
         for (const project of projects) {
             promises.push(axios.get(`https://localhost:5000/api/projects/${project.projectGUID}/tickets?email=${cookies.get('email')}`));
         }
 
-        const ticketPromises = await Promise.all(promises);
-        const tickets = [];
+        if (this._isMounted) {
+            Promise.all(promises)
+                .then(values => {
+                    let mergedValues = [];
+                    for (const value of values) {
+                        mergedValues = mergedValues.concat(value.data);
+                    }
 
-        for (const ticketPromise of ticketPromises) {
-            tickets.concat(ticketPromise.data);
+                    if (this._isMounted) {
+                        console.log("set state");
+                        console.log(mergedValues);
+                        this.setState({tickets: mergedValues});
+                    }
+                    else {
+                        console.log("unmounted already");
+                    }
+                });
         }
+    }
 
-        console.log(tickets);
+    componentWillUnmount() {
+        this._isMounted = false;
     }
 
     render() {
+        console.log(this.state.tickets);
+
+        const cookies = new Cookies();
+
         const data = {
             labels: ['Low', 'Medium', 'High'],
             datasets: [
                 {
-                    label: 'Tickets by Priority',
+                    label: 'Tickets',
                     data: [
-                        this.state.tickets.filter(ticket => ticket.priority === 0),
-                        this.state.tickets.filter(ticket => ticket.priority === 1),
-                        this.state.tickets.filter(ticket => ticket.priority === 2)
+                        this.state.tickets.filter(ticket => ticket.ticketPriority === 0).length,
+                        this.state.tickets.filter(ticket => ticket.ticketPriority === 1).length,
+                        this.state.tickets.filter(ticket => ticket.ticketPriority === 2).length
                     ],
                     backgroundColor: [
                         'rgba(75, 192, 192, 0.2)',
@@ -63,7 +83,8 @@ class DashBoard extends React.Component {
               yAxes: [
                 {
                   ticks: {
-                    beginAtZero: true,
+                    min: 0,
+                    stepSize: 1
                   },
                 },
               ],
