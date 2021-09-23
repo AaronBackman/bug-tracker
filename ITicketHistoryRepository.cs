@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 
+// unused at the moment
+
 namespace bug_tracker
 {
     public interface ITicketHistoryRepository

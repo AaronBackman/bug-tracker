@@ -5,6 +5,8 @@ using Microsoft.Data.SqlClient;
 using System.Collections.Generic;
 using System.Linq;
 
+// unused at the moment
+
 namespace bug_tracker
 {
     public class TicketHistoryRepository : ITicketHistoryRepository

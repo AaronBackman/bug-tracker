@@ -43,11 +43,6 @@ namespace bug_tracker.Controllers
             string email = HttpContext.Request.Query["email"].ToString();
 
             ticketRepository.Put(updatedTicket, ticketGuid, project_guid, email);
-            TicketHistory ticketHistory = new TicketHistory();
-            ticketHistory.DateEdited = DateTime.Now;
-            ticketHistory.Change = "TODO";
-            // add ticketHistory.Change = ??? (TODO)
-            ticketHistoryRepository.Add(ticketHistory, project_guid, ticketGuid, email);
 
             return NoContent();
         }
@@ -58,7 +53,6 @@ namespace bug_tracker.Controllers
             string email = HttpContext.Request.Query["email"].ToString();
 
             ticketRepository.Delete(ticketGuid, project_guid, email);
-            ticketHistoryRepository.DeleteAll(ticketGuid, project_guid, email);
 
             return NoContent();
         }
