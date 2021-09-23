@@ -1,6 +1,7 @@
 import React from 'react';
 import Cookies from 'universal-cookie';
 import axios from 'axios';
+import Bar from 'react-chartjs-2'
 
 import './ProjectPage.css';
 

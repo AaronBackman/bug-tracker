@@ -10,6 +10,7 @@ import ProjectList from './ProjectList';
 import SideBar from './SideBar';
 import NavBar from './NavBar';
 import ProjectPage from './ProjectPage';
+import DashBoard from './DashBoard';
 
 class App extends React.Component {
   state = {
@@ -62,6 +63,7 @@ class App extends React.Component {
               <Route exact path="/home" render={(props) => <Home userNickname={this.state.userNickname} {...props} />} />
               <Route exact path="/projects" render={(props) => <ProjectList userNickname={this.state.userNickname} {...props} />} />
               <Route exact path="/projects/:guid" render={(props) => <ProjectPage {...props} />} />
+              <Route exact path="/dashboard" render={(props) => <DashBoard {...props} />} />
             </Switch>
           </div>
         </div>
