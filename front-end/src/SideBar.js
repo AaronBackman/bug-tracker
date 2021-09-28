@@ -1,17 +1,16 @@
-import React from 'react';
+import React from "react";
 
-import SideBarButton from './SideBarButton';
+import SideBarButton from "./SideBarButton";
 
-import './SideBar.css';
-
+import "./SideBar.css";
 
 class SideBar extends React.Component {
   render() {
     return (
-        <div className="side-bar">
-            <SideBarButton path="/dashboard" text="Dashboard" />
-            <SideBarButton path="/projects" text="Projects" />
-        </div>
+      <div className="side-bar">
+        <SideBarButton path="/dashboard" text="Dashboard" />
+        <SideBarButton path="/projects" text="Projects" />
+      </div>
     );
   }
 }

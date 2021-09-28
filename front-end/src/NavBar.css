@@ -1,8 +1,8 @@
 .nav-bar {
-    background-color: #f7f7f7;
-    height: 50px;
-    width: 100%;
+  background-color: #f7f7f7;
+  height: 50px;
+  width: 100%;
 
-    display: flex;
-    justify-content: space-between;
+  display: flex;
+  justify-content: space-between;
 }

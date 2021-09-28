@@ -1,18 +1,18 @@
 .sidebar-button-container {
-    display: flex;
-    justify-content: center;
-    align-self: center;
-    width: 100%;
-    cursor: pointer;
-    text-decoration: none;
-    color: inherit;
+  display: flex;
+  justify-content: center;
+  align-self: center;
+  width: 100%;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
 }
 
 .sidebar-button-container:hover {
-    background-color: #CCC;
-    text-decoration: underline;
+  background-color: #ccc;
+  text-decoration: underline;
 }
 
 .sidebar-button {
-    padding: 10px;
+  padding: 10px;
 }
