@@ -1,7 +1,7 @@
 import axios from "axios";
 import React from "react";
 import Cookies from "universal-cookie";
-import { Bar } from "react-chartjs-2";
+import { Bar, Chart } from "react-chartjs-2";
 
 import "./DashBoard.css";
 
@@ -65,8 +65,12 @@ class DashBoard extends React.Component {
       ).length
     );
 
+    Chart.defaults.font.size = 16;
+    Chart.defaults.color = "333";
+    Chart.defaults.borderColor = "333";
+
     const data = {
-      labels: ["Low", "Medium", "High"],
+      labels: ["Low Priority", "Medium Priority", "High Priority"],
       datasets: [
         {
           label: "Tickets",
@@ -88,9 +92,9 @@ class DashBoard extends React.Component {
             ).length,
           ],
           backgroundColor: [
-            "rgba(75, 192, 192, 0.2)",
-            "rgba(255, 206, 86, 0.2)",
-            "rgba(255, 99, 132, 0.2)",
+            "rgba(75, 192, 192, 0.7)",
+            "rgba(255, 206, 86, 0.7)",
+            "rgba(255, 99, 132, 0.7)",
           ],
           borderColor: [
             "rgba(75, 192, 192, 1)",
@@ -103,6 +107,8 @@ class DashBoard extends React.Component {
     };
 
     const options = {
+      responsive: true,
+      maintainAspectRatio: false,
       scales: {
         yAxes: [
           {
@@ -116,9 +122,12 @@ class DashBoard extends React.Component {
     };
 
     return (
-      <div>
+      <div className="dashboard">
         <div className="ticket-priority-chart-container">
           <Bar data={data} options={options} />
+          <div className="chart-text-container">
+            <div className="chart-text">Your tickets</div>
+          </div>
         </div>
       </div>
     );

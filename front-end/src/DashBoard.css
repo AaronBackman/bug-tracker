@@ -1,4 +1,30 @@
+.dashboard {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  width: 100%;
+  height: 100%;
+}
+
 .ticket-priority-chart-container {
-  background-color: #ccc;
+  background-color: #eee;
   padding: 30px;
+  width: 60%;
+  height: 40%;
+  border: 5px solid #aaa;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.chart-text-container {
+  display: flex;
+  justify-content: center;
+  margin: 15px 0px;
+}
+
+.chart-text {
+  font-size: 25px;
 }
