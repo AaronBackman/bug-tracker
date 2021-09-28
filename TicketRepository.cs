@@ -37,7 +37,7 @@ namespace bug_tracker
                 }
 
                 string sql = 
-                    @"SELECT T.TicketName, T.TicketGUID, T.TicketDescription, T.DateCreated, T.TicketPriority, T.TicketCompleted, U.Nickname AS CreatorNickname, A.Email
+                    @"SELECT T.TicketName, T.TicketGUID, T.TicketDescription, T.DateCreated, T.TicketPriority, T.TicketCompleted, U.Nickname AS CreatorNickname, A.Email AS AssignedToEmail
                     FROM Tickets T
                     INNER JOIN Users U ON U.Id=T.CreatorId
                     INNER JOIN Users A ON A.Id=T.AssignedToId

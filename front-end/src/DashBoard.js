@@ -55,6 +55,8 @@ class DashBoard extends React.Component {
   }
 
   render() {
+    const cookies = new Cookies();
+
     console.log(
       this.state.tickets.filter(
         (ticket) =>
@@ -62,8 +64,6 @@ class DashBoard extends React.Component {
           ticket.assignedToEmail === cookies.get("email")
       ).length
     );
-
-    const cookies = new Cookies();
 
     const data = {
       labels: ["Low", "Medium", "High"],
